@@ -1,6 +1,10 @@
 import { RTTPEncoder } from "../core/RTTPEncoder";
 import { RTTPOperation, RTTPType } from "../types/enum";
-import { type RTTPHandler, type RTTPMessage } from "../types/rttp";
+import {
+  type RTTPHandler,
+  type RTTPMessage,
+  type RTTPMessageInput,
+} from "../types/rttp";
 import { ConnectionRole, type ServerOptions } from "../types/type";
 import { RTTPConnection } from "./connection";
 
@@ -28,20 +32,27 @@ export class RTTPServer {
               (connection, message) => {
                 serverInstance.handleMessage(connection, message);
               },
+              {
+                role: ConnectionRole.SERVER,
+                id: "0",
+              },
             );
 
             serverInstance.connections.set(socket, connection);
-            const estab: RTTPMessage = {
-              role: ConnectionRole.SERVER,
-              id: "0",
-              version: "1.0",
+            const estab: RTTPMessageInput = {
               operation: RTTPOperation.ESTAB,
               status: 200,
               type: RTTPType.ACKN,
             };
 
-            serverInstance.handleMessage(connection, estab);
-            connection.send(RTTPEncoder.encode(estab));
+            serverInstance.handleMessage(connection, {
+              requestid: "0",
+              role: ConnectionRole.SERVER,
+              id: "0",
+              version: "1.0",
+              ...estab,
+            });
+            connection.inform(estab);
           },
 
           data(socket, data) {
@@ -88,15 +99,14 @@ export class RTTPServer {
     const handler = this.handlers.get(message.operation);
 
     if (!handler) {
-      const message = RTTPEncoder.encode({
-        role: ConnectionRole.SERVER,
-        id: "0",
-        version: "1.0",
-        operation: RTTPOperation.NOT_IMPLEMENTED,
-        type: RTTPType.ACKN,
-        status: 501,
-      });
-      connection.send(message);
+      connection.ackn(
+        {
+          operation: RTTPOperation.NOT_IMPLEMENTED,
+          type: RTTPType.ACKN,
+          status: 501,
+        },
+        message.requestid,
+      );
       return;
     }
 

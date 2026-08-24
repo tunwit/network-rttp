@@ -50,8 +50,29 @@ export const RegisterPassengerSchema = {
 export const RequestRideSchema = {
   [RTTPType.INFORM]: z
     .object({
-      lat: z.string().min(1, "latitude is required"),
-      lng: z.string().min(1, "longitude is required"),
+      pickuplat: z.string().min(1, "latitude is required"),
+      pickuplng: z.string().min(1, "longitude is required"),
+      destinationlat: z.string().min(1, "destination latitude is required"),
+      destinationlng: z.string().min(1, "destination longitude is required"),
+    })
+    .strict(),
+  [RTTPType.ACKN]: z
+    .object({
+      driverid: z.string().min(1, "driverid is required"),
+      driverlat: z.string().min(1, "driver latitude is required"),
+      driverlng: z.string().min(1, "driver longitude is required"),
+    })
+    .strict(),
+} satisfies OperationSchema;
+
+
+export const OfferRideSchema = {
+  [RTTPType.INFORM]: z
+    .object({
+      pickuplat: z.string().min(1, "latitude is required"),
+      pickuplng: z.string().min(1, "longitude is required"),
+      destinationlat: z.string().min(1, "destination latitude is required"),
+      destinationlng: z.string().min(1, "destination longitude is required"),
     })
     .strict(),
   [RTTPType.ACKN]: z

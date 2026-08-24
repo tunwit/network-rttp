@@ -9,18 +9,32 @@ import { RTTPMassageFrame } from "../core/RTTPFrame";
 import { RTTPDecoder } from "../core/RTTPDecoder";
 import { DomainException } from "../exception/exception";
 import { RTTPEncoder } from "../core/RTTPEncoder";
-import { type RTTPHandler } from "../types/rttp";
+import {
+  type RTTPAckn,
+  type RTTPHandler,
+  type RTTPInform,
+  type RTTPMessage,
+  type RTTPMessageInput,
+} from "../types/rttp";
 import { RTTPOperation, RTTPType } from "../types/enum";
 
 export class RTTPConnection {
   private static connection: RTTPConnection | null = null;
   private handlers = new Set<RTTPHandler>();
   private messageFrame: RTTPMassageFrame;
-  private identity: ConnectionIdentity | null = null;
+  private remoteIdentity: ConnectionIdentity | null = null;
+  private pendingRequests = new Map<
+    string,
+    {
+      resolve: (message: RTTPMessage) => void;
+      reject: (error: Error) => void;
+    }
+  >();
 
   constructor(
     private socket: Bun.Socket,
     private _onMessage?: RTTPHandler,
+    private localIdentity?: ConnectionIdentity,
   ) {
     this.messageFrame = new RTTPMassageFrame();
   }
@@ -53,9 +67,47 @@ export class RTTPConnection {
     return RTTPConnection.connection;
   }
 
-  send(message: string) {
+  private send(message: string) {
     const encoded = RTTP.encode(message);
     this.socket.write(encoded);
+  }
+
+  async inform<T extends RTTPMessageInput>(
+    obj: T,
+  ): Promise<Extract<RTTPAckn, { operation: T["operation"] }>> {
+    const requestId = crypto.randomUUID();
+    const identity = this.getIdentity();
+    const message: RTTPMessage = {
+      ...obj,
+      requestid: requestId,
+      version: "1.0",
+      role: identity?.role ?? ConnectionRole.UNKNOWN,
+      id: identity?.id ?? null,
+    } as RTTPMessage;
+
+    const response = new Promise<
+      Extract<RTTPAckn, { operation: T["operation"] }>
+    >((resolve, reject) => {
+      this.pendingRequests.set(requestId, {
+        resolve: resolve as (message: RTTPMessage) => void,
+        reject,
+      });
+    });
+
+    this.send(RTTPEncoder.encode(message));
+    return response;
+  }
+
+  async ackn(obj: RTTPMessageInput, messageId: string) {
+    const c: RTTPMessage = {
+      ...obj,
+      requestid: messageId,
+      version: "1.0",
+      role: this.getIdentity()?.role ?? ConnectionRole.UNKNOWN,
+      id: this.getIdentity()?.id ?? null,
+    };
+    const encoded = RTTPEncoder.encode(c);
+    this.send(encoded);
   }
 
   receive(data: Buffer<ArrayBufferLike>) {
@@ -64,6 +116,15 @@ export class RTTPConnection {
     for (const frame of frames) {
       try {
         const obj = RTTPDecoder.decode(frame);
+        if (obj.requestid) {
+          const pending = this.pendingRequests.get(obj.requestid);
+
+          if (pending) {
+            this.pendingRequests.delete(obj.requestid);
+            pending.resolve(obj);
+          }
+        }
+
         // call upper message handdler
         if (this._onMessage) this._onMessage(this, obj);
 
@@ -76,6 +137,7 @@ export class RTTPConnection {
         let message = "";
         if (err instanceof DomainException) {
           message = RTTPEncoder.encode({
+            requestid: "0",
             role: this.getIdentity()?.role || ConnectionRole.UNKNOWN,
             id: this.getIdentity()?.id || null,
             type: RTTPType.ACKN,
@@ -88,6 +150,7 @@ export class RTTPConnection {
           });
         } else {
           message = RTTPEncoder.encode({
+            requestid: "0",
             role: this.getIdentity()?.role || ConnectionRole.UNKNOWN,
             id: this.getIdentity()?.id || null,
             type: RTTPType.ACKN,
@@ -112,12 +175,20 @@ export class RTTPConnection {
     };
   }
 
-  identify(identity: ConnectionIdentity) {
-    this.identity = identity;
+  setLocalIdentity(identity: ConnectionIdentity) {
+    this.localIdentity = identity;
+  }
+
+  setRemoteIdentity(identity: ConnectionIdentity) {
+    this.remoteIdentity = identity;
   }
 
   getIdentity() {
-    return this.identity;
+    return this.localIdentity;
+  }
+
+  getRemoteIdentity() {
+    return this.remoteIdentity;
   }
 
   close() {

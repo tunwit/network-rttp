@@ -19,7 +19,7 @@ export class Logger {
   }
   static log(connection: RTTPConnection, message: RTTPMessage) {
     console.log(
-      `[${message.type}] ${this.getTimeStamp()} ${message.role}(${message.id}) ${message.operation} ${this.payloadToString(message)}`,
+      `[${message.type}](${message.requestid}) ${this.getTimeStamp()} ${message.role}(${message.id}) ${message.operation} ${this.payloadToString(message)}`,
     );
   }
 

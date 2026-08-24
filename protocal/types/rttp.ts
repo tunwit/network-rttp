@@ -48,6 +48,7 @@ export type RTTPAcknPayloadMap = PayloadMap<RTTPType.ACKN>;
 
 export type RTTPInform = {
   [K in RTTPOperation]: {
+    requestid: string;
     role: ConnectionRole;
     id: string | null;
     type: RTTPType.INFORM;
@@ -60,6 +61,7 @@ export type RTTPInform = {
 
 export type RTTPAckn = {
   [K in RTTPOperation]: {
+    requestid: string;
     role: ConnectionRole;
     id: string | null;
     type: RTTPType.ACKN;
@@ -77,3 +79,12 @@ export type RTTPHandler = (
   connection: RTTPConnection,
   message: RTTPMessage,
 ) => void | Promise<void>;
+
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown
+  ? Omit<T, K>
+  : never;
+
+export type RTTPMessageInput =
+  | DistributiveOmit<RTTPInform, "version" | "role" | "id" | "requestid">
+  | DistributiveOmit<RTTPAckn, "version" | "role" | "id" | "requestid">
+;

@@ -11,43 +11,37 @@ server.on(RTTPOperation.ESTAB, (connection, request) => {
 server.on(RTTPOperation.REGISTER_DRIVER, (connection, request) => {
   Logger.log(connection, request);
   const driverId = "D001";
-  const message = RTTPEncoder.encode({
-    version: "1.0",
-    id: "0",
-    role: ConnectionRole.SERVER,
-    operation: RTTPOperation.REGISTER_DRIVER,
-    type: RTTPType.ACKN,
-    status: 201,
-    payload: { driverid: driverId },
-  });
-
-  connection.identify({
+  connection.setRemoteIdentity({
     role: ConnectionRole.DRIVER,
     id: driverId,
   });
 
-  connection.send(message);
+  connection.ackn(
+    {
+      operation: RTTPOperation.REGISTER_DRIVER,
+      type: RTTPType.ACKN,
+      status: 201,
+      payload: { driverid: driverId },
+    },
+    request.requestid,
+  );
 });
 
 server.on(RTTPOperation.REGISTER_PASSENGER, (connection, request) => {
   Logger.log(connection, request);
   const passengerId = "P001";
-  const message = RTTPEncoder.encode({
-    version: "1.0",
-    id: "0",
-    role: ConnectionRole.SERVER,
-    operation: RTTPOperation.REGISTER_PASSENGER,
-    type: RTTPType.ACKN,
-    status: 201,
-    payload: { passengerid: passengerId },
-  });
 
-  connection.identify({
+  connection.setRemoteIdentity({
     role: ConnectionRole.PASSENGER,
     id: passengerId,
   });
 
-  connection.send(message);
+  connection.ackn({
+    operation: RTTPOperation.REGISTER_PASSENGER,
+    type: RTTPType.ACKN,
+    status: 201,
+    payload: { passengerid: passengerId },
+  }, request.requestid);
 });
 
 server.on(RTTPOperation.REQUEST_RIDE, (connection, request) => {
@@ -55,21 +49,20 @@ server.on(RTTPOperation.REQUEST_RIDE, (connection, request) => {
   const findedDriverId = "D001";
   const driverLat = "40.7128";
   const driverLng = "-74.0060";
-  const message = RTTPEncoder.encode({
-    version: "1.0",
-    id: "0",
-    role: ConnectionRole.SERVER,
-    operation: RTTPOperation.REQUEST_RIDE,
-    type: RTTPType.ACKN,
-    status: 201,
-    payload: {
-      driverid: findedDriverId,
-      driverlat: driverLat,
-      driverlng: driverLng,
-    },
-  });
 
-  connection.send(message);
+  connection.ackn(
+    {
+      operation: RTTPOperation.REQUEST_RIDE,
+      type: RTTPType.ACKN,
+      status: 201,
+      payload: {
+        driverid: findedDriverId,
+        driverlat: driverLat,
+        driverlng: driverLng,
+      },
+    },
+    request.requestid,
+  );
 });
 
 console.log(`RTTP Server is listening at localhost:3308`);

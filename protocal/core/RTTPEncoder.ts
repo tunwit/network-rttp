@@ -12,6 +12,7 @@ export class RTTPEncoder {
     let body = "";
 
     body += `RTTP/${obj.version}${RTTPEncoder.delimiter}`;
+    body += `REQUEST_ID: ${obj.requestid}${RTTPEncoder.delimiter}`;
     body += `ROLE: ${obj.role}${RTTPEncoder.delimiter}`;
     body += `ID: ${obj.id}${RTTPEncoder.delimiter}`;
     body += `TYPE: ${obj.type}${RTTPEncoder.delimiter}`;

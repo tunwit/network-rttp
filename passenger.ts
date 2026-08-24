@@ -1,0 +1,36 @@
+import { RTTPEncoder } from "./protocal/core/RTTPEncoder";
+import { RTTP } from "./protocal/protocal";
+import { RTTPOperation, RTTPType } from "./protocal/types/enum";
+import { ConnectionRole } from "./protocal/types/type";
+import { Logger } from "./protocal/utils/logger";
+
+const client = await RTTP.connect({ host: "localhost", port: 3308 });
+client.onMessage((connection, message) => {
+
+});
+
+const response = await client.inform({
+  type: RTTPType.INFORM,
+  operation: RTTPOperation.REGISTER_PASSENGER,
+  payload: {
+    name: "sd",
+  },
+});
+
+client.setLocalIdentity({
+  role: ConnectionRole.PASSENGER,
+  id: response.payload.passengerid,
+});
+
+console.log(client.getRemoteIdentity());
+// console.log(client.getIdentity());
+// await client.inform({
+//   type: RTTPType.INFORM,
+//   operation: RTTPOperation.REQUEST_RIDE,
+//   payload: {
+//     pickuplat: "40.7128",
+//     pickuplng: "-74.0060",
+//     destinationlat: "34.0522",
+//     destinationlng: "-118.2437",
+//   },
+// });

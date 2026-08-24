@@ -7,20 +7,22 @@ import type { ConnectionRole } from "../types/type";
 
 export class RTTPDecoder {
   private static VERSION_POS = 0;
-  private static ROLE_POS = 1;
-  private static ID_POS = 2;
-  private static TYPE_POS = 3;
+  private static REQUEST_ID_POS = 1;
+  private static ROLE_POS = 2;
+  private static ID_POS = 3;
+  private static TYPE_POS = 4;
 
   static decode(message: string): RTTPMessage {
     const splitted = message.split("\r\n\n");
     if (splitted.length < 4) throw new BadRequestException();
 
+    const requestId = this.getRequestId(splitted[this.REQUEST_ID_POS]!);
     const role = this.getRole(splitted[this.ROLE_POS]!);
     const id = this.getId(splitted[this.ID_POS]!);
     const version = this.getVersion(splitted[this.VERSION_POS]!);
     const type = this.getType(splitted[this.TYPE_POS]!);
 
-    let index = 4;
+    let index = 5;
     let status: string | undefined;
 
     if (type === RTTPType.ACKN) {
@@ -35,6 +37,7 @@ export class RTTPDecoder {
     const payload = this.getPayload(type, operation, payloadBlock);
 
     return {
+      requestid: requestId,
       role: role,
       id: id,
       version,
@@ -78,12 +81,18 @@ export class RTTPDecoder {
       .join("; ");
   }
 
+  private static getRequestId(part: string) {
+    if (!part.startsWith("REQUEST_ID: "))
+      throw new BadRequestException("Request ID is missing");
+    return part.replace("REQUEST_ID: ", "");
+  }
+
   private static getRole(part: string) {
     if (!part.startsWith("ROLE: "))
       throw new BadRequestException("Role is missing");
     const role = part.replace("ROLE: ", "");
-    if (!RTTPUtils.isValidRole(role))
-      throw new BadRequestException("Invalid role");
+      if (!RTTPUtils.isValidRole(role))
+        throw new BadRequestException("Invalid role");
     return role as ConnectionRole;
   }
 

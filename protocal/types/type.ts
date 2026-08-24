@@ -9,7 +9,7 @@ export type ServerOptions = {
 
 export type ConnectionIdentity = {
   role: ConnectionRole;
-  id: string;
+  id: string | null;
 };
 
 export enum ConnectionRole {
