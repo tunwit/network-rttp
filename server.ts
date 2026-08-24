@@ -4,7 +4,7 @@ import { RTTPOperation, RTTPType } from "./protocal/types/enum";
 import { ConnectionRole } from "./protocal/types/type";
 import { Logger } from "./protocal/utils/logger";
 
-const server = await RTTP.listen({ host: "localhost", port: 888 });
+const server = await RTTP.listen({ host: "localhost", port: 3308 });
 server.on(RTTPOperation.ESTAB, (connection, request) => {
   console.log("Client Connected");
 });
@@ -29,4 +29,47 @@ server.on(RTTPOperation.REGISTER_DRIVER, (connection, request) => {
   connection.send(message);
 });
 
-console.log(`RTTP Server is listening at localhost:888`);
+server.on(RTTPOperation.REGISTER_PASSENGER, (connection, request) => {
+  Logger.log(connection, request);
+  const passengerId = "P001";
+  const message = RTTPEncoder.encode({
+    version: "1.0",
+    id: "0",
+    role: ConnectionRole.SERVER,
+    operation: RTTPOperation.REGISTER_PASSENGER,
+    type: RTTPType.ACKN,
+    status: 201,
+    payload: { passengerid: passengerId },
+  });
+
+  connection.identify({
+    role: ConnectionRole.PASSENGER,
+    id: passengerId,
+  });
+
+  connection.send(message);
+});
+
+server.on(RTTPOperation.REQUEST_RIDE, (connection, request) => {
+  Logger.log(connection, request);
+  const findedDriverId = "D001";
+  const driverLat = "40.7128";
+  const driverLng = "-74.0060";
+  const message = RTTPEncoder.encode({
+    version: "1.0",
+    id: "0",
+    role: ConnectionRole.SERVER,
+    operation: RTTPOperation.REQUEST_RIDE,
+    type: RTTPType.ACKN,
+    status: 201,
+    payload: {
+      driverid: findedDriverId,
+      driverlat: driverLat,
+      driverlng: driverLng,
+    },
+  });
+
+  connection.send(message);
+});
+
+console.log(`RTTP Server is listening at localhost:3308`);

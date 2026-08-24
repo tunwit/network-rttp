@@ -5,6 +5,8 @@ import {
   ESTABSchema,
   NotImplementedSchema,
   RegisterDriverSchema,
+  RegisterPassengerSchema,
+  RequestRideSchema,
 } from "./schema";
 
 import { RTTPOperation, RTTPType } from "./enum";
@@ -18,8 +20,8 @@ const EmptySchema = {
 export const RTTPOperationSchemaMap = {
   [RTTPOperation.ESTAB]: ESTABSchema,
   [RTTPOperation.REGISTER_DRIVER]: RegisterDriverSchema,
-  [RTTPOperation.REGISTER_PASSENGER]: EmptySchema,
-  [RTTPOperation.REQUEST_RIDE]: EmptySchema,
+  [RTTPOperation.REGISTER_PASSENGER]: RegisterPassengerSchema,
+  [RTTPOperation.REQUEST_RIDE]: RequestRideSchema,
   [RTTPOperation.OFFER_RIDE]: EmptySchema,
   [RTTPOperation.ACCEPT_RIDE]: EmptySchema,
   [RTTPOperation.END_RIDE]: EmptySchema,
