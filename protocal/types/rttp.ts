@@ -3,10 +3,12 @@ import type { RTTPConnection } from "../instance/connection";
 import {
   ErrorSchema,
   ESTABSchema,
+  LocationReportSchema,
   NotImplementedSchema,
   RegisterDriverSchema,
   RegisterPassengerSchema,
   RequestRideSchema,
+  StartLocationSchema,
 } from "./schema";
 
 import { RTTPOperation, RTTPType } from "./enum";
@@ -24,6 +26,9 @@ export const RTTPOperationSchemaMap = {
   [RTTPOperation.REQUEST_RIDE]: RequestRideSchema,
   [RTTPOperation.OFFER_RIDE]: EmptySchema,
   [RTTPOperation.ACCEPT_RIDE]: EmptySchema,
+  [RTTPOperation.START_LOCATION]: StartLocationSchema,
+  [RTTPOperation.REPORT_LOCATION]: LocationReportSchema,
+  [RTTPOperation.END_LOCATION]: EmptySchema,
   [RTTPOperation.END_RIDE]: EmptySchema,
   [RTTPOperation.ERROR]: ErrorSchema,
   [RTTPOperation.NOT_IMPLEMENTED]: NotImplementedSchema,
@@ -80,11 +85,16 @@ export type RTTPHandler = (
   message: RTTPMessage,
 ) => void | Promise<void>;
 
+export type RTTPLocationHandler = (
+  buf: Buffer,
+  port: number,
+  addr: string,
+) => void | Promise<void>;
+
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown
   ? Omit<T, K>
   : never;
 
 export type RTTPMessageInput =
   | DistributiveOmit<RTTPInform, "version" | "role" | "id" | "requestid">
-  | DistributiveOmit<RTTPAckn, "version" | "role" | "id" | "requestid">
-;
+  | DistributiveOmit<RTTPAckn, "version" | "role" | "id" | "requestid">;

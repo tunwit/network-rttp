@@ -35,6 +35,7 @@ export class RTTPConnection {
     private socket: Bun.Socket,
     private _onMessage?: RTTPHandler,
     private localIdentity?: ConnectionIdentity,
+    private connectionOptions?: ConnectionOptions,
   ) {
     this.messageFrame = new RTTPMassageFrame();
   }
@@ -44,8 +45,13 @@ export class RTTPConnection {
       hostname: connection.host,
       port: connection.port,
       socket: {
-        open(socket) {
-          RTTPConnection.connection = new RTTPConnection(socket);
+        async open(socket) {
+          RTTPConnection.connection = new RTTPConnection(
+            socket,
+            undefined,
+            undefined,
+            connection,
+          );
         },
         data(socket, data) {
           RTTPConnection.connection?.receive(data);
@@ -58,9 +64,6 @@ export class RTTPConnection {
         },
       },
     });
-    console.log(
-      `Successfully connect to ${connection.host}:${connection.port}`,
-    );
     if (!RTTPConnection.connection)
       throw new Error("Fail to connect to server");
 
@@ -70,6 +73,33 @@ export class RTTPConnection {
   private send(message: string) {
     const encoded = RTTP.encode(message);
     this.socket.write(encoded);
+  }
+
+  private async sendLocation(message: string) {
+    const encoded = RTTP.encode(message);
+    const client = await Bun.udpSocket({});
+    client.send(encoded, this.connectionOptions?.locationServer.port!, this.connectionOptions?.locationServer.host!);
+  }
+
+  async reportLocation(location: { lat: string; lng: string }, token: string) {
+    const identity = this.getIdentity();
+    const requestId = crypto.randomUUID();
+    const message: RTTPInform = {
+      requestid: requestId,
+      version: "1.0",
+      role: identity?.role ?? ConnectionRole.UNKNOWN,
+      id: identity?.id ?? null,
+      type: RTTPType.INFORM, 
+      operation: RTTPOperation.REPORT_LOCATION,
+      payload: {
+        driverid: this.getIdentity()?.id ?? "",
+        driverlat: location.lat,
+        driverlng: location.lng,
+        locationtoken: token,
+      },
+    };
+
+    this.sendLocation(RTTPEncoder.encode(message));
   }
 
   async inform<T extends RTTPMessageInput>(

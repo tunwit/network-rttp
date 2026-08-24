@@ -4,12 +4,19 @@ import { RTTPOperation, RTTPType } from "./protocal/types/enum";
 import { ConnectionRole } from "./protocal/types/type";
 import { Logger } from "./protocal/utils/logger";
 
-const client = await RTTP.connect({ host: "localhost", port: 3308 });
+const client = await RTTP.connect({
+  host: "localhost",
+  port: 3308,
+  locationServer: { host: "localhost", port: 3309 },
+});
 client.onMessage((connection, message) => {
-
+  if (message.operation === RTTPOperation.ESTAB) {
+    console.log("Connected to server");
+    client.setRemoteIdentity({ role: message.role, id: message.id });
+  }
 });
 
-const response = await client.inform({
+const registerPassenger = await client.inform({
   type: RTTPType.INFORM,
   operation: RTTPOperation.REGISTER_PASSENGER,
   payload: {
@@ -19,18 +26,16 @@ const response = await client.inform({
 
 client.setLocalIdentity({
   role: ConnectionRole.PASSENGER,
-  id: response.payload.passengerid,
+  id: registerPassenger.payload.passengerid,
 });
 
-console.log(client.getRemoteIdentity());
-// console.log(client.getIdentity());
-// await client.inform({
-//   type: RTTPType.INFORM,
-//   operation: RTTPOperation.REQUEST_RIDE,
-//   payload: {
-//     pickuplat: "40.7128",
-//     pickuplng: "-74.0060",
-//     destinationlat: "34.0522",
-//     destinationlng: "-118.2437",
-//   },
-// });
+const requestRide = await client.inform({
+  type: RTTPType.INFORM,
+  operation: RTTPOperation.REQUEST_RIDE,
+  payload: {
+    pickuplat: "40.7128",
+    pickuplng: "-74.0060",
+    destinationlat: "34.0522",
+    destinationlng: "-118.2437",
+  },
+});

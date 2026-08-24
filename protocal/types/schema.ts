@@ -65,7 +65,6 @@ export const RequestRideSchema = {
     .strict(),
 } satisfies OperationSchema;
 
-
 export const OfferRideSchema = {
   [RTTPType.INFORM]: z
     .object({
@@ -82,6 +81,28 @@ export const OfferRideSchema = {
       driverlng: z.string().min(1, "driver longitude is required"),
     })
     .strict(),
+} satisfies OperationSchema;
+
+
+export const StartLocationSchema = {
+  [RTTPType.INFORM]: z.object({}).strict(),
+  [RTTPType.ACKN]: z
+    .object({
+      locationtoken: z.string().min(1, "location token is required"),
+    })
+    .strict(),
+} satisfies OperationSchema;
+
+export const LocationReportSchema = {
+  [RTTPType.INFORM]: z
+    .object({
+      locationtoken: z.string().min(1, "location token is required"),
+      driverid: z.string().min(1, "driver id is required"),
+      driverlat: z.string().min(1, "driver latitude is required"),
+      driverlng: z.string().min(1, "driver longitude is required"),
+    })
+    .strict(),
+  [RTTPType.ACKN]: z.object({}).strict(),
 } satisfies OperationSchema;
 
 export const ErrorSchema = {

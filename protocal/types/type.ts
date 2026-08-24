@@ -1,10 +1,19 @@
 export type ConnectionOptions = {
   host: string;
   port: number;
+  locationServer: {
+    host: string;
+    port: number;
+  };
 };
 export type ServerOptions = {
   host: string;
   port: number;
+
+  locationServer: {
+    host: string;
+    port: number;
+  };
 };
 
 export type ConnectionIdentity = {
