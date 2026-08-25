@@ -17,6 +17,7 @@ const client = await RTTP.connect({
   locationServer: { host: "localhost", port: 3309 },
 });
 client.onMessage((connection, message) => {
+  Logger.log(message);
   if (message.operation === RTTPOperation.ESTAB) {
     console.log("Connected to server");
     client.setRemoteIdentity({ role: message.role, id: message.id });
