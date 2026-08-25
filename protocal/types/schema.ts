@@ -83,7 +83,6 @@ export const OfferRideSchema = {
     .strict(),
 } satisfies OperationSchema;
 
-
 export const StartLocationSchema = {
   [RTTPType.INFORM]: z.object({}).strict(),
   [RTTPType.ACKN]: z
@@ -91,6 +90,15 @@ export const StartLocationSchema = {
       locationtoken: z.string().min(1, "location token is required"),
     })
     .strict(),
+} satisfies OperationSchema;
+
+export const EndLocationSchema = {
+  [RTTPType.INFORM]: z
+    .object({
+      locationtoken: z.string().min(1, "location token is required"),
+    })
+    .strict(),
+  [RTTPType.ACKN]: z.object({}).strict(),
 } satisfies OperationSchema;
 
 export const LocationReportSchema = {

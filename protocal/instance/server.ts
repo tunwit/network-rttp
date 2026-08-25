@@ -1,3 +1,4 @@
+import { RTTPDecoder } from "../core/RTTPDecoder";
 import { RTTPEncoder } from "../core/RTTPEncoder";
 import { RTTPOperation, RTTPType } from "../types/enum";
 import {
@@ -81,9 +82,9 @@ export class RTTPServer {
       port: options.locationServer.port,
       socket: {
         data(socket, buf, port, addr) {
-          
+          const obj = RTTPDecoder.decode(buf.toString());
           for (const handler of serverInstance.locationMessageHandler) {
-            handler(buf, port, addr);
+            handler(obj, port, addr);
           }
         },
       },

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { RTTPConnection } from "../instance/connection";
 import {
+  EndLocationSchema,
   ErrorSchema,
   ESTABSchema,
   LocationReportSchema,
@@ -28,9 +29,10 @@ export const RTTPOperationSchemaMap = {
   [RTTPOperation.ACCEPT_RIDE]: EmptySchema,
   [RTTPOperation.START_LOCATION]: StartLocationSchema,
   [RTTPOperation.REPORT_LOCATION]: LocationReportSchema,
-  [RTTPOperation.END_LOCATION]: EmptySchema,
+  [RTTPOperation.END_LOCATION]: EndLocationSchema,
   [RTTPOperation.END_RIDE]: EmptySchema,
   [RTTPOperation.ERROR]: ErrorSchema,
+  [RTTPOperation.FIN]: EmptySchema,
   [RTTPOperation.NOT_IMPLEMENTED]: NotImplementedSchema,
 } as const satisfies Record<
   RTTPOperation,
@@ -86,7 +88,7 @@ export type RTTPHandler = (
 ) => void | Promise<void>;
 
 export type RTTPLocationHandler = (
-  buf: Buffer,
+  message: RTTPMessage,
   port: number,
   addr: string,
 ) => void | Promise<void>;

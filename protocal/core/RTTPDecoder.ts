@@ -14,6 +14,8 @@ export class RTTPDecoder {
 
   static decode(message: string): RTTPMessage {
     const splitted = message.split("\r\n\n");
+    if (splitted[0] === "<RTTP_START>") splitted.shift();
+    if (splitted[splitted.length - 1] === "<RTTP_END>") splitted.pop();
     if (splitted.length < 4) throw new BadRequestException();
 
     const requestId = this.getRequestId(splitted[this.REQUEST_ID_POS]!);
@@ -91,8 +93,8 @@ export class RTTPDecoder {
     if (!part.startsWith("ROLE: "))
       throw new BadRequestException("Role is missing");
     const role = part.replace("ROLE: ", "");
-      if (!RTTPUtils.isValidRole(role))
-        throw new BadRequestException("Invalid role");
+    if (!RTTPUtils.isValidRole(role))
+      throw new BadRequestException("Invalid role");
     return role as ConnectionRole;
   }
 

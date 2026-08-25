@@ -78,7 +78,11 @@ export class RTTPConnection {
   private async sendLocation(message: string) {
     const encoded = RTTP.encode(message);
     const client = await Bun.udpSocket({});
-    client.send(encoded, this.connectionOptions?.locationServer.port!, this.connectionOptions?.locationServer.host!);
+    client.send(
+      encoded,
+      this.connectionOptions?.locationServer.port!,
+      this.connectionOptions?.locationServer.host!,
+    );
   }
 
   async reportLocation(location: { lat: string; lng: string }, token: string) {
@@ -89,7 +93,7 @@ export class RTTPConnection {
       version: "1.0",
       role: identity?.role ?? ConnectionRole.UNKNOWN,
       id: identity?.id ?? null,
-      type: RTTPType.INFORM, 
+      type: RTTPType.INFORM,
       operation: RTTPOperation.REPORT_LOCATION,
       payload: {
         driverid: this.getIdentity()?.id ?? "",

@@ -17,7 +17,7 @@ export class Logger {
     }).format(date);
     return formatted;
   }
-  static log(connection: RTTPConnection, message: RTTPMessage) {
+  static log(message: RTTPMessage) {
     console.log(
       `[${message.type}](${message.requestid}) ${this.getTimeStamp()} ${message.role}(${message.id}) ${message.operation} ${this.payloadToString(message)}`,
     );
